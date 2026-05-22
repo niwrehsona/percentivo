@@ -9,6 +9,8 @@ interface Props {
 }
 const { title, description = SITE.desc, canonical, schema } = Astro.props;
 const url = canonical ? `${SITE.url}${canonical}` : SITE.url;
+
+const gaId = import.meta.env.PUBLIC_GA_ID;
 ---
 
 <!doctype html>
@@ -28,6 +30,15 @@ const url = canonical ? `${SITE.url}${canonical}` : SITE.url;
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script type="application/ld+json" set:html={buildWebAppSchema()} />
     {schema && <script type="application/ld+json" set:html={schema} />}
+    {gaId && (
+      <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+      <script define:vars={{ gaId }}>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', gaId);
+      </script>
+    )}
   </head>
   <body class="bg-gray-50 text-gray-900 antialiased">
     <header
