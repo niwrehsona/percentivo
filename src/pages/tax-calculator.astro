@@ -1,0 +1,83 @@
+---
+import Base from "../layouts/Base.astro";
+import FAQSection from "../components/FAQSection.astro";
+import RelatedCalculators from "../components/RelatedCalculators.astro";
+import Breadcrumb from "../components/Breadcrumb.astro";
+import TaxCalculator from "../components/TaxCalculator.astro";
+const faqs = [
+  { question:"How do I calculate tax on a price?", answer:"Multiply the pre-tax price by (1 + tax rate/100). For 8.5% tax on $50: $50 × 1.085 = $54.25." },
+  { question:"How do I remove tax from a total price?", answer:"Divide by (1 + tax rate/100). For $108 with 8% tax: $108 ÷ 1.08 = $100 pre-tax." },
+  { question:"What is the difference between VAT and sales tax?", answer:"VAT is collected at every stage of production. Sales tax is only collected at the final sale. US prices usually exclude tax; VAT country prices usually include it." },
+  { question:"How do I add tax in Excel?", answer:"If price is in A1 and tax rate in B1: =A1*(1+B1/100) gives the total. To remove tax: =A1/(1+B1/100)." },
+];
+const vatRates = [
+  ["United Kingdom","20%","5%"],["Germany","19%","7%"],["France","20%","5.5%"],
+  ["Australia (GST)","10%","0%"],["Canada (GST)","5%","0%"],["Philippines","12%","0%"],
+];
+const usRates = [
+  ["California","7.25%","10.25%"],["New York","4%","8.52%"],["Texas","6.25%","8.20%"],
+  ["Florida","6%","7.01%"],["Washington","6.5%","9.38%"],["Oregon","0%","0%"],
+];
+---
+<Base title="Tax Calculator – Sales Tax & VAT Calculator"
+  description="Calculate sales tax, VAT, income tax and more. Four calculation modes: add tax, remove VAT, find tax rate, income tax estimate."
+  canonical="/tax-calculator">
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <Breadcrumb items={[{label:"Home",href:"/"},{label:"Tax Calculator"}]}/>
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Tax Percentage Calculator</h1>
+    <p class="text-gray-600 mb-8">Sales tax, VAT, income tax — four calculation modes in one tool.</p>
+    <div class="mb-8"><TaxCalculator/></div>
+
+    <div class="bg-white border border-gray-200 rounded-xl p-5 mb-8">
+      <h2 class="font-bold text-gray-900 mb-4">Sales Tax & VAT Rates — Quick Reference</h2>
+      <div class="grid sm:grid-cols-2 gap-6 overflow-x-auto">
+        <div>
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">VAT Rates (Countries)</h3>
+          <table class="w-full text-sm border-collapse">
+            <thead><tr class="border-b border-gray-200">
+              <th class="text-left px-2 py-2 font-medium text-gray-500 text-xs">Country</th>
+              <th class="text-right px-2 py-2 font-medium text-gray-500 text-xs">Standard</th>
+              <th class="text-right px-2 py-2 font-medium text-gray-500 text-xs">Reduced</th>
+            </tr></thead>
+            <tbody>
+              {vatRates.map(([c,s,r])=>(
+                <tr class="border-b border-gray-100 last:border-0">
+                  <td class="px-2 py-2 text-gray-900">{c}</td>
+                  <td class="px-2 py-2 text-right text-red-600 font-semibold">{s}</td>
+                  <td class="px-2 py-2 text-right text-gray-500">{r}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Sales Tax (US States)</h3>
+          <table class="w-full text-sm border-collapse">
+            <thead><tr class="border-b border-gray-200">
+              <th class="text-left px-2 py-2 font-medium text-gray-500 text-xs">State</th>
+              <th class="text-right px-2 py-2 font-medium text-gray-500 text-xs">State rate</th>
+              <th class="text-right px-2 py-2 font-medium text-gray-500 text-xs">Avg combined</th>
+            </tr></thead>
+            <tbody>
+              {usRates.map(([s,r,c])=>(
+                <tr class="border-b border-gray-100 last:border-0">
+                  <td class="px-2 py-2 text-gray-900">{s}</td>
+                  <td class="px-2 py-2 text-right text-red-600 font-semibold">{r}</td>
+                  <td class="px-2 py-2 text-right text-gray-500">{c}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <FAQSection faqs={faqs}/>
+    <RelatedCalculators items={[
+      {label:"Discount Calculator",href:"/discount-calculator",desc:"Sale price and savings"},
+      {label:"Markup Calculator",  href:"/markup-calculator",  desc:"Selling price from cost"},
+      {label:"% of Number",        href:"/percentage-of-number",desc:"What is X% of Y?"},
+      {label:"% Increase",         href:"/percentage-increase",desc:"Growth between two values"},
+    ]}/>
+  </div>
+</Base>

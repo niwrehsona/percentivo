@@ -1,0 +1,125 @@
+---
+import Base from "../../layouts/Base.astro";
+import FAQSection from "../../components/FAQSection.astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+import { buildFAQSchema, buildHowToSchema } from "../../lib/seo";
+import markupPairs from "../../data/markup-pairs.json";
+
+export function getStaticPaths() {
+  return (markupPairs as {cost:number;markup:number;price:number;profit:number;margin:number}[]).map(({cost,markup})=>({
+    params: { slug:`${markup}-markup-on-${cost}` },
+    props:  { cost, markup },
+  }));
+}
+
+const { cost, markup } = Astro.props as { cost:number; markup:number };
+const price   = parseFloat((cost*(1+markup/100)).toFixed(6));
+const profit  = parseFloat((price-cost).toFixed(6));
+const margin  = parseFloat(((profit/price)*100).toFixed(4));
+const decimal = parseFloat((1+markup/100).toFixed(6));
+
+function getBenchmark():{label:string;note:string;color:string} {
+  if(markup<15)  return {label:"Very thin",   color:"red",   note:"Below most industry minimums. Viable only at very high volume with near-zero overhead."};
+  if(markup<40)  return {label:"Low",         color:"amber", note:"Workable for high-volume, low-overhead businesses such as grocery, electronics, or commodity supply."};
+  if(markup<100) return {label:"Standard",    color:"green", note:"Solid general retail or trade pricing. Supports overhead, marketing, and a sustainable profit margin."};
+  if(markup<300) return {label:"Strong",      color:"green", note:"Typical of branded goods, professional services, or speciality retail."};
+  return              {label:"Premium / IP",  color:"blue",  note:"Characteristic of software, pharmaceuticals, or luxury goods where marginal cost is near zero."};
+}
+function getContext():string {
+  if(cost<10)   return `A $${cost} input marked up ${markup}% to $${parseFloat(price.toFixed(2))} is typical of food service — the $${parseFloat(profit.toFixed(2))} gross profit per unit only makes sense at high daily volume.`;
+  if(cost<50)   return `Marking up a $${cost} cost item by ${markup}% gives a $${parseFloat(price.toFixed(2))} selling price — common in retail accessories or café products.`;
+  if(cost<200)  return `A ${markup}% markup on a $${cost} product ($${parseFloat(price.toFixed(2))} selling price) is standard for general retail or trade services.`;
+  if(cost<2000) return `At $${cost} cost with a ${markup}% markup, the $${parseFloat(price.toFixed(2)).toLocaleString()} selling price is typical of contractor quotes or professional services.`;
+  return `A ${markup}% markup on a $${cost.toLocaleString()} cost base produces a $${parseFloat(price.toFixed(2)).toLocaleString()} price — representative of large B2B contracts or enterprise services.`;
+}
+
+const bench   = getBenchmark();
+const context = getContext();
+const fmt     = (n:number) => "$"+parseFloat(n.toFixed(2)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtP    = (n:number) => parseFloat(n.toFixed(2))+"%";
+
+const benchColors:Record<string,string> = {
+  red:  "bg-red-50 border-red-200 text-red-800",
+  amber:"bg-amber-50 border-amber-200 text-amber-800",
+  green:"bg-green-50 border-green-200 text-green-800",
+  blue: "bg-blue-50 border-blue-200 text-blue-800",
+};
+const faqs = [
+  { question:`What is ${markup}% markup on $${cost}?`, answer:`A ${markup}% markup on a $${cost} cost gives a selling price of ${fmt(price)}, gross profit of ${fmt(profit)}, and a gross margin of ${fmtP(margin)}%. Formula: $${cost} × ${decimal} = ${fmt(price)}.` },
+  { question:`What is the difference between ${markup}% markup and ${markup}% margin?`, answer:`${markup}% markup means profit is ${markup}% of the cost ($${cost}). The equivalent gross margin — profit as % of selling price (${fmt(price)}) — is ${fmtP(margin)}%. Markup is always the larger number.` },
+  { question:`What gross margin does a ${markup}% markup produce?`, answer:`A ${markup}% markup produces a ${fmtP(margin)} gross margin. Formula: Margin = Markup ÷ (1 + Markup/100) = ${markup} ÷ ${decimal} = ${fmtP(margin)}.` },
+  { question:`How do I apply a ${markup}% markup in a spreadsheet?`, answer:`If cost is in A1: =A1*(1+${markup}/100) gives the selling price. For a column: =A1*${decimal} dragged down.` },
+];
+const howTo = buildHowToSchema(`How to calculate ${markup}% markup on $${cost}`,[
+  {name:"Convert to multiplier", text:`1 + ${markup}/100 = ${decimal}`},
+  {name:"Multiply by cost",      text:`$${cost} × ${decimal} = ${fmt(price)}`},
+  {name:"Gross profit",          text:`${fmt(price)} − $${cost} = ${fmt(profit)}`},
+  {name:"Gross margin",          text:`${fmt(profit)} ÷ ${fmt(price)} × 100 = ${fmtP(margin)}`},
+]);
+---
+<Base
+  title={`${markup}% Markup on $${cost} – Selling Price ${fmt(price)}`}
+  description={`A ${markup}% markup on a $${cost} cost gives a selling price of ${fmt(price)}, gross profit of ${fmt(profit)}, and a ${fmtP(margin)} gross margin.`}
+  canonical={`/markup/${markup}-markup-on-${cost}`}
+  schema={`${buildFAQSchema(faqs)}\n${howTo}`}>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <Breadcrumb items={[{label:"Home",href:"/"},{label:"Markup Calculator",href:"/markup-calculator"},{label:`${markup}% markup on $${cost}`}]}/>
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{markup}% Markup on ${cost}</h1>
+    <p class="text-gray-500 mb-8 text-sm">Selling price, gross profit, gross margin — with full formula and industry context.</p>
+
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-8 mb-8 shadow-sm">
+      <div class="grid grid-cols-3 gap-4 text-center mb-6">
+        {([["Selling Price",fmt(price),true],["Gross Profit",fmt(profit),false],["Gross Margin",fmtP(margin),false]] as [string,string,boolean][]).map(([label,value,big])=>(
+          <div>
+            <div class="text-xs font-medium text-blue-600 mb-1 uppercase tracking-wide">{label}</div>
+            <div class={`font-bold text-blue-800 ${big?"text-4xl":"text-2xl"}`}>{value}</div>
+          </div>
+        ))}
+      </div>
+      <div class="font-mono text-xs text-blue-600 text-center bg-white/60 rounded-lg px-4 py-2">${cost} × {decimal} = {fmt(price)}</div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">The Formulas</h2>
+        {([["Selling price:","Cost × (1 + Markup/100)"],["Gross profit:","Price − Cost"],["Gross margin:","(Profit ÷ Price) × 100"],["Markup check:","(Price − Cost) ÷ Cost × 100"]] as [string,string][]).map(([l,f])=>(
+          <div class="mb-3 last:mb-0">
+            <div class="text-xs text-gray-500 mb-0.5">{l}</div>
+            <div class="bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5 font-mono text-blue-800 text-xs">{f}</div>
+          </div>
+        ))}
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">Step-by-Step</h2>
+        <div class="space-y-3">
+          {([["Convert to multiplier",`1 + ${markup}/100 = ${decimal}`],["Multiply by cost",`$${cost} × ${decimal} = ${fmt(price)}`],["Gross profit",`${fmt(price)} − $${cost} = ${fmt(profit)}`],["Gross margin",`${fmt(profit)} ÷ ${fmt(price)} × 100 = ${fmtP(margin)}`]] as [string,string][]).map(([label,calc],i)=>(
+            <div class="flex gap-3 items-start">
+              <span class="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i+1}</span>
+              <div>
+                <div class="text-xs text-gray-500 mb-0.5">{label}</div>
+                <div class="text-sm font-medium text-gray-900 font-mono">{calc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class={`border rounded-xl p-5 mb-8 ${benchColors[bench.color]}`}>
+      <div class="font-semibold text-sm mb-1">Industry Assessment: {bench.label}</div>
+      <p class="text-sm leading-relaxed">{bench.note}</p>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
+      <h2 class="font-semibold text-blue-900 mb-2">Real-World Context</h2>
+      <p class="text-blue-800 text-sm leading-relaxed">{context}</p>
+    </div>
+
+    <FAQSection faqs={faqs}/>
+
+    <div class="mt-8 p-5 bg-gray-50 border border-gray-200 rounded-xl text-center">
+      <p class="text-gray-600 text-sm mb-3">Need a different markup calculation?</p>
+      <a href="/markup-calculator" class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Open Markup Calculator →</a>
+    </div>
+  </div>
+</Base>

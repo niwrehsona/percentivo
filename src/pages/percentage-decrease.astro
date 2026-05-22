@@ -1,0 +1,86 @@
+---
+import Base from "../layouts/Base.astro";
+import FAQSection from "../components/FAQSection.astro";
+import RelatedCalculators from "../components/RelatedCalculators.astro";
+import Breadcrumb from "../components/Breadcrumb.astro";
+const faqs = [
+  { question:"What is the percentage decrease formula?", answer:"Percentage decrease = ((Old − New) ÷ Old) × 100." },
+  { question:"Can a percentage decrease be more than 100%?", answer:"No. A 100% decrease means the value reached zero." },
+  { question:"How do I find the new value after a % decrease?", answer:"Multiply the original by (1 − percentage/100). For 25% decrease from 80: 80 × 0.75 = 60." },
+  { question:"How is percentage decrease different from increase?", answer:"Both use the same formula but from opposite directions. The denominator is always the original value." },
+];
+---
+<Base title="Percentage Decrease Calculator"
+  description="Calculate the percentage decrease from one value to another. Free online tool with formula and examples."
+  canonical="/percentage-decrease">
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <Breadcrumb items={[{label:"Home",href:"/"},{label:"Percentage Decrease"}]}/>
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Percentage Decrease Calculator</h1>
+    <p class="text-gray-600 mb-8">Find the percentage decrease from one value to another.</p>
+
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 mb-8">
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1.5">Original value</label>
+          <input id="dec-a" type="number" inputmode="decimal" placeholder="e.g. 100"
+            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"/>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1.5">New value</label>
+          <input id="dec-b" type="number" inputmode="decimal" placeholder="e.g. 75"
+            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"/>
+        </div>
+      </div>
+      <div id="dec-box" class="border rounded-xl p-5 text-center min-h-[80px] flex flex-col items-center justify-center bg-gray-50 border-gray-200">
+        <div id="dec-ph" class="text-gray-400 text-sm">Enter values above to calculate</div>
+        <div id="dec-ans" class="hidden">
+          <div class="text-xs text-amber-600 mb-1">Percentage Decrease</div>
+          <div id="dec-val" class="text-4xl font-bold text-amber-700"></div>
+          <div id="dec-fml" class="text-xs font-mono mt-2 text-amber-600"></div>
+        </div>
+      </div>
+      <script>
+        const da=document.getElementById("dec-a") as HTMLInputElement;
+        const db=document.getElementById("dec-b") as HTMLInputElement;
+        function decCalc(){
+          const o=parseFloat(da.value),n=parseFloat(db.value);
+          const ph=document.getElementById("dec-ph")!,ans=document.getElementById("dec-ans")!,box=document.getElementById("dec-box")!;
+          if(!isNaN(o)&&!isNaN(n)&&o!==0){
+            const pct=parseFloat((((o-n)/o)*100).toFixed(4));
+            document.getElementById("dec-val")!.textContent=`−${pct}%`;
+            document.getElementById("dec-fml")!.textContent=`((${o}−${n})÷${o})×100=${pct}%`;
+            box.className="border rounded-xl p-5 text-center min-h-[80px] flex flex-col items-center justify-center bg-amber-50 border-amber-200";
+            ph.classList.add("hidden");ans.classList.remove("hidden");
+          } else {
+            ph.classList.remove("hidden");ans.classList.add("hidden");
+            box.className="border rounded-xl p-5 text-center min-h-[80px] flex flex-col items-center justify-center bg-gray-50 border-gray-200";
+          }
+        }
+        da.addEventListener("input",decCalc);db.addEventListener("input",decCalc);
+      </script>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">The Formula</h2>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 font-mono text-blue-800 text-sm text-center">% decrease = ((Old − New) ÷ Old) × 100</div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">Step-by-Step (100 → 75)</h2>
+        {[["1","Difference: 100 − 75 = 25"],["2","Divide by original: 25 ÷ 100 = 0.25"],["3","Multiply by 100 = 25%"],["4","Verify: 100 × 0.75 = 75 ✓"]].map(([n,t])=>(
+          <div class="flex gap-3 items-start mb-2.5 last:mb-0">
+            <span class="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">{n}</span>
+            <span class="text-sm text-gray-700">{t}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    <FAQSection faqs={faqs}/>
+    <RelatedCalculators items={[
+      {label:"Percentage Increase",href:"/percentage-increase",desc:"Growth between two values"},
+      {label:"Discount Calculator",href:"/discount-calculator",desc:"Sale price and savings"},
+      {label:"% of Number",        href:"/percentage-of-number",desc:"What is X% of Y?"},
+      {label:"Tax Calculator",     href:"/tax-calculator",     desc:"Sales tax and VAT"},
+    ]}/>
+  </div>
+</Base>

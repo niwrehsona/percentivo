@@ -1,0 +1,115 @@
+---
+import Base from "../../layouts/Base.astro";
+import FAQSection from "../../components/FAQSection.astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+import { buildFAQSchema, buildHowToSchema } from "../../lib/seo";
+import pairsData from "../../data/pairs.json";
+
+export function getStaticPaths() {
+  return (pairsData as {pct:number;num:number}[]).map(({pct,num})=>({
+    params: { slug:`${pct}-percent-of-${num}` },
+    props:  { pct, num },
+  }));
+}
+
+const { pct, num } = Astro.props as { pct:number; num:number };
+const answer  = parseFloat(((pct/100)*num).toFixed(6));
+const decimal = parseFloat((pct/100).toFixed(10));
+
+function getContext(x:number,y:number,ans:number):string {
+  if(y<=20)   return `If you scored ${y} points on a quiz, ${x}% of that is ${ans} points.`;
+  if(y<=100)  return `A product priced at $${y} with a ${x}% discount saves you $${ans}.`;
+  if(y<=1000) return `${x}% of a $${y} monthly budget is $${ans} — a useful allocation for a single category.`;
+  return `${x}% of a $${y.toLocaleString()} annual salary is $${ans.toLocaleString()}.`;
+}
+
+const context = getContext(pct,num,answer);
+const faqs = [
+  { question:`How do you calculate ${pct}% of ${num}?`, answer:`Multiply ${num} by ${decimal}. The calculation is: ${num} × ${decimal} = ${answer}.` },
+  { question:`What is ${pct}% of ${num} as a decimal?`, answer:`${pct}% as a decimal is ${decimal}. Multiplying ${num} × ${decimal} gives ${answer}.` },
+  { question:`${answer} is what percent of ${num}?`, answer:`${answer} is ${pct}% of ${num}. Verify: (${answer} ÷ ${num}) × 100 = ${pct}%.` },
+  { question:`What is ${pct}% of ${num} in everyday terms?`, answer:context },
+];
+const related = [
+  ...(pct+5<=100 ? [{ label:`What is ${pct+5}% of ${num}?`, href:`/what-is/${pct+5}-percent-of-${num}` }] : []),
+  ...(pct-5>0    ? [{ label:`What is ${pct-5}% of ${num}?`, href:`/what-is/${pct-5}-percent-of-${num}` }] : []),
+  { label:`What is ${pct}% of ${num*2}?`, href:`/what-is/${pct}-percent-of-${num*2}` },
+];
+const howTo = buildHowToSchema(`How to calculate ${pct}% of ${num}`,[
+  { name:"Convert to decimal",  text:`${pct} ÷ 100 = ${decimal}` },
+  { name:"Multiply by number",  text:`${decimal} × ${num} = ${answer}` },
+  { name:"Verify",              text:`${answer} ÷ ${num} × 100 = ${pct}% ✓` },
+]);
+---
+<Base
+  title={`What is ${pct}% of ${num}? – Answer + Calculator`}
+  description={`${pct}% of ${num} is ${answer}. See the step-by-step formula, worked solution, and real-world examples.`}
+  canonical={`/what-is/${pct}-percent-of-${num}`}
+  schema={`${buildFAQSchema(faqs)}\n${howTo}`}>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <Breadcrumb items={[{label:"Home",href:"/"},{label:"% of Number",href:"/percentage-of-number"},{label:`What is ${pct}% of ${num}?`}]}/>
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">What is {pct}% of {num}?</h1>
+    <p class="text-gray-500 mb-8 text-sm">Quick answer, step-by-step working, and real-world examples.</p>
+
+    <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-8 mb-8 text-center shadow-sm">
+      <div class="text-sm font-medium text-green-700 mb-2 uppercase tracking-wide">{pct}% of {num} =</div>
+      <div class="text-7xl font-bold text-green-700 mb-3">{answer.toLocaleString()}</div>
+      <div class="font-mono text-sm text-green-600 bg-white/60 rounded-lg px-4 py-2 inline-block">{num} × {decimal} = {answer.toLocaleString()}</div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">Formula</h2>
+        <div class="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 font-mono text-blue-800 text-sm text-center mb-4">Result = (P ÷ 100) × N</div>
+        <div class="space-y-2 text-sm">
+          {[["P (percentage)",String(pct)],["N (number)",String(num)],["Decimal",String(decimal)],["Result",String(answer)]].map(([k,v],i)=>(
+            <div class={`flex justify-between py-1 ${i<3?"border-b border-gray-100":"font-semibold"}`}>
+              <span class="text-gray-600">{k}</span>
+              <span class={`font-mono ${i===3?"text-green-700":"text-gray-900"}`}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">Step-by-Step</h2>
+        <div class="space-y-3">
+          {[["Convert to decimal",`${pct} ÷ 100 = ${decimal}`],["Multiply by number",`${decimal} × ${num} = ${answer}`],["Verify",`${answer} ÷ ${num} × 100 = ${pct}% ✓`]].map(([label,calc],i)=>(
+            <div class="flex gap-3 items-start">
+              <span class="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i+1}</span>
+              <div>
+                <div class="text-xs text-gray-500 mb-0.5">{label}</div>
+                <div class="text-sm font-medium text-gray-900 font-mono">{calc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
+      <h2 class="font-semibold text-blue-900 mb-2">Real-World Example</h2>
+      <p class="text-blue-800 text-sm leading-relaxed">{context}</p>
+    </div>
+
+    {related.length > 0 && (
+      <div class="bg-white border border-gray-200 rounded-xl p-5 mb-8">
+        <h2 class="font-bold text-gray-900 mb-4">Related Calculations</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {related.map(r=>(
+            <a href={r.href} class="flex items-center justify-between px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm hover:border-blue-300 hover:bg-blue-50 transition-all">
+              <span class="text-gray-700">{r.label}</span>
+              <span class="text-blue-500 ml-2">→</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <FAQSection faqs={faqs}/>
+
+    <div class="mt-8 p-5 bg-gray-50 border border-gray-200 rounded-xl text-center">
+      <p class="text-gray-600 text-sm mb-3">Need a different calculation?</p>
+      <a href="/percentage-of-number" class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Open Full Calculator →</a>
+    </div>
+  </div>
+</Base>

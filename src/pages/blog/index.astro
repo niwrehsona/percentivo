@@ -1,0 +1,51 @@
+---
+import Base from "../../layouts/Base.astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+
+const allPosts = import.meta.glob("../../content/blog/*.mdx", { eager: true });
+const posts = Object.entries(allPosts)
+  .map(([path, mod]: [string, any]) => ({
+    slug:        path.split("/").pop()!.replace(".mdx",""),
+    title:       mod.frontmatter?.title       ?? "",
+    description: mod.frontmatter?.description ?? "",
+    date:        mod.frontmatter?.date        ?? "",
+    category:    mod.frontmatter?.category    ?? "General",
+  }))
+  .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+function formatDate(d:string) {
+  return new Date(d).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+}
+---
+<Base title="Blog – Percentage Guides & Formulas"
+  description="Practical guides on percentage calculations, discount formulas, markup math, tax explanations, and more."
+  canonical="/blog">
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <Breadcrumb items={[{label:"Home",href:"/"},{label:"Blog"}]}/>
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Percentage Calculator Blog</h1>
+    <p class="text-gray-600 mb-10">Guides, formulas, and real-world examples for every percentage calculation.</p>
+
+    {posts.length === 0
+      ? <div class="text-center py-16 text-gray-400"><div class="text-5xl mb-4">📝</div><p>Blog posts coming soon.</p></div>
+      : (
+        <div class="grid gap-6">
+          {posts.map(post=>(
+            <article class="bg-white border border-gray-200 rounded-2xl p-6 hover:border-blue-300 hover:shadow-sm transition-all">
+              <div class="flex items-center gap-3 mb-3">
+                <span class="text-xs font-medium px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full">{post.category}</span>
+                <span class="text-xs text-gray-400">{formatDate(post.date)}</span>
+              </div>
+              <h2 class="text-xl font-bold text-gray-900 mb-2">
+                <a href={`/blog/${post.slug}`} class="hover:text-blue-700 transition-colors">{post.title}</a>
+              </h2>
+              <p class="text-gray-600 text-sm leading-relaxed mb-4">{post.description}</p>
+              <a href={`/blog/${post.slug}`} class="text-sm font-medium text-blue-600 hover:text-blue-800 inline-flex items-center gap-1">
+                Read article →
+              </a>
+            </article>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</Base>

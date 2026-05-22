@@ -1,0 +1,164 @@
+---
+import Base from "../../layouts/Base.astro";
+import FAQSection from "../../components/FAQSection.astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+import { buildFAQSchema, buildHowToSchema } from "../../lib/seo";
+import taxPairs from "../../data/tax-pairs.json";
+
+export function getStaticPaths() {
+  return (taxPairs as {rate:number;amount:number;taxAmount:number;total:number;effRate:number}[]).map(({rate,amount})=>({
+    params: { slug:`${rate}-on-${amount}` },
+    props:  { rate, amount },
+  }));
+}
+
+const { rate, amount } = Astro.props as { rate:number; amount:number };
+const taxAmt  = parseFloat((amount*rate/100).toFixed(6));
+const total   = parseFloat((amount+taxAmt).toFixed(6));
+const effRate = parseFloat(((taxAmt/total)*100).toFixed(4));
+const mult    = parseFloat((1+rate/100).toFixed(6));
+const preTax  = parseFloat((amount/mult).toFixed(2));
+
+function identifyRegion(r:number):{label:string;note:string} {
+  if(r===5)    return {label:"Canada GST",            note:"Canada's federal Goods and Services Tax. Provinces add their own PST on top."};
+  if(r===6)    return {label:"US state sales tax",    note:"Used in Michigan, Indiana, Kentucky, New Jersey and other US states."};
+  if(r===6.25) return {label:"US state sales tax",    note:"Texas and Massachusetts state rate. Local additions may apply."};
+  if(r===7)    return {label:"US state sales tax",    note:"Common base rate in North Carolina and South Carolina."};
+  if(r===7.5)  return {label:"US combined rate",      note:"Typical combined state + local sales tax in many US cities."};
+  if(r===8)    return {label:"US combined rate",      note:"Common combined state + county/city US sales tax rate."};
+  if(r===8.25) return {label:"US combined rate",      note:"Common in Texas and states that allow local additions to the state rate."};
+  if(r===8.5)  return {label:"US combined rate",      note:"Typical combined rate across many US metro areas."};
+  if(r===9)    return {label:"US combined rate",      note:"Higher combined rate found in Tennessee, Louisiana, and similar states."};
+  if(r===10)   return {label:"Australia GST / Japan", note:"Australia's flat 10% GST and Japan's consumption tax both use this rate."};
+  if(r===12)   return {label:"Philippines VAT",       note:"The Philippines applies 12% VAT on most goods and services."};
+  if(r===15)   return {label:"New Zealand GST / South Africa VAT", note:"New Zealand's 15% GST and South Africa's standard VAT rate."};
+  if(r===18)   return {label:"India GST (standard)",  note:"India's standard GST rate applied to most services and many goods."};
+  if(r===19)   return {label:"Germany VAT",           note:"Germany's standard VAT rate. A 7% reduced rate applies to food and books."};
+  if(r===20)   return {label:"UK / France VAT",       note:"UK and France standard VAT. Reduced rates (5–5.5%) apply to essentials."};
+  if(r===21)   return {label:"Spain / Netherlands VAT",note:"Standard VAT in Spain and the Netherlands."};
+  if(r===22)   return {label:"US federal income tax", note:"US federal income tax rate for single filers earning $47,150–$100,525 (2024)."};
+  if(r===23)   return {label:"Poland / Portugal VAT", note:"Standard VAT rate in Poland and Portugal."};
+  if(r===24)   return {label:"US federal income tax", note:"US federal rate for single filers earning $100,525–$191,950 (2024)."};
+  if(r===25)   return {label:"Scandinavian VAT",      note:"Sweden, Denmark, and Norway all use 25% as their standard VAT rate."};
+  if(r===37)   return {label:"US top income tax",     note:"Top US federal income tax rate for income above $609,350 (2024)."};
+  if(r<10)     return {label:"US-range sales tax",    note:"Typical of US state or combined state + local sales tax rates."};
+  if(r<=15)    return {label:"GST / reduced VAT",     note:"Common range for GST-style consumption taxes and EU reduced VAT rates."};
+  if(r<=25)    return {label:"Standard VAT",          note:"Typical standard VAT range for European and other international jurisdictions."};
+  return             {label:"High VAT / custom rate", note:"Higher than most standard VAT rates — may apply to specific goods or services."};
+}
+
+function getContext():string {
+  const ta=parseFloat(taxAmt.toFixed(2)), tot=parseFloat(total.toFixed(2));
+  if(amount<30)    return `Adding ${rate}% tax to a $${amount} purchase brings the total to $${tot}. The $${ta} tax is collected and remitted to the tax authority.`;
+  if(amount<200)   return `A $${amount} purchase with ${rate}% tax costs $${tot} all-in. The $${ta} is what the retailer collects and remits — it doesn't stay with the seller.`;
+  if(amount<2000)  return `On a $${amount.toLocaleString()} transaction, ${rate}% tax adds $${ta.toLocaleString()}, bringing the total to $${tot.toLocaleString()}. Accurate tax calculation matters for invoicing and expense reporting.`;
+  if(amount<20000) return `A $${amount.toLocaleString()} invoice with ${rate}% tax carries a $${ta.toLocaleString()} tax component, totalling $${tot.toLocaleString()}. VAT-registered buyers can typically reclaim the input tax.`;
+  return `At $${amount.toLocaleString()} — a salary or large contract figure — ${rate}% represents $${ta.toLocaleString()}, leaving $${(amount-ta).toLocaleString()} net. Note: income tax is progressive in most countries; this is a flat-rate estimate.`;
+}
+
+const region  = identifyRegion(rate);
+const context = getContext();
+const fmt     = (n:number) => "$"+parseFloat(n.toFixed(2)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtP    = (n:number) => parseFloat(n.toFixed(4))+"%";
+
+const faqs = [
+  { question:`How much is ${rate}% tax on $${amount}?`, answer:`${rate}% tax on $${amount} is ${fmt(taxAmt)}. Total including tax: ${fmt(total)}. Formula: $${amount} × ${rate/100} = ${fmt(taxAmt)}, then $${amount} + ${fmt(taxAmt)} = ${fmt(total)}.` },
+  { question:`How do I remove ${rate}% tax from ${fmt(total)}?`, answer:`Divide by ${parseFloat(mult.toFixed(4))}: ${fmt(total)} ÷ ${parseFloat(mult.toFixed(4))} = ${fmt(preTax)} pre-tax. Tax component: ${fmt(parseFloat((total-preTax).toFixed(2)))}.` },
+  { question:`Why is the effective rate (${fmtP(effRate)}) lower than ${rate}%?`, answer:`The ${rate}% rate applies to the pre-tax amount ($${amount}). The effective rate — tax as a share of the total (${fmt(total)}) — is always lower because the denominator is larger.` },
+  { question:`Where is ${rate}% tax used?`, answer:`${region.label}: ${region.note} Always verify the current rate with your local tax authority.` },
+];
+const howTo = buildHowToSchema(`How to calculate ${rate}% tax on $${amount}`,[
+  {name:"Convert to decimal",    text:`${rate} ÷ 100 = ${rate/100}`},
+  {name:"Calculate tax amount",  text:`$${amount} × ${rate/100} = ${fmt(taxAmt)}`},
+  {name:"Add to original price", text:`$${amount} + ${fmt(taxAmt)} = ${fmt(total)}`},
+  {name:"Verify (reverse)",      text:`${fmt(total)} ÷ ${parseFloat(mult.toFixed(4))} = $${amount} ✓`},
+]);
+---
+<Base
+  title={`${rate}% Tax on $${amount} – Tax ${fmt(taxAmt)}, Total ${fmt(total)}`}
+  description={`${rate}% tax on $${amount} = ${fmt(taxAmt)} tax. Total including tax: ${fmt(total)}. Step-by-step formula, reverse calculation, and regional context.`}
+  canonical={`/tax/${rate}-on-${amount}`}
+  schema={`${buildFAQSchema(faqs)}\n${howTo}`}>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <Breadcrumb items={[{label:"Home",href:"/"},{label:"Tax Calculator",href:"/tax-calculator"},{label:`${rate}% tax on $${amount}`}]}/>
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{rate}% Tax on ${amount.toLocaleString()}</h1>
+    <p class="text-gray-500 mb-8 text-sm">Tax amount, total price, step-by-step formula, and regional context.</p>
+
+    <div class="bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 rounded-2xl p-8 mb-8 shadow-sm">
+      <div class="grid grid-cols-3 gap-4 text-center mb-6">
+        {([["Tax Amount",fmt(taxAmt),false],["Total Price",fmt(total),true],["Effective Rate",fmtP(effRate),false]] as [string,string,boolean][]).map(([label,value,big])=>(
+          <div>
+            <div class="text-xs font-medium text-red-600 mb-1 uppercase tracking-wide">{label}</div>
+            <div class={`font-bold text-red-800 ${big?"text-4xl":"text-2xl"}`}>{value}</div>
+          </div>
+        ))}
+      </div>
+      <div class="font-mono text-xs text-red-600 text-center bg-white/60 rounded-lg px-4 py-2">${amount} × {mult} = {fmt(total)}</div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">Formulas</h2>
+        {([["Add tax (total):","Price × (1 + Rate/100)"],["Tax amount only:","Price × Rate/100"],["Remove tax (pre-tax):","Total ÷ (1 + Rate/100)"],["Effective rate:","(Tax ÷ Total) × 100"]] as [string,string][]).map(([label,formula])=>(
+          <div class="mb-3 last:mb-0">
+            <div class="text-xs text-gray-500 mb-0.5">{label}</div>
+            <div class="bg-red-50 border border-red-100 rounded-lg px-3 py-1.5 font-mono text-red-800 text-xs">{formula}</div>
+          </div>
+        ))}
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">Step-by-Step</h2>
+        <div class="space-y-3">
+          {([["Convert to decimal",`${rate} ÷ 100 = ${rate/100}`],["Calculate tax",`$${amount} × ${rate/100} = ${fmt(taxAmt)}`],["Add to price",`$${amount} + ${fmt(taxAmt)} = ${fmt(total)}`],["Verify (reverse)",`${fmt(total)} ÷ ${parseFloat(mult.toFixed(4))} = $${amount} ✓`]] as [string,string][]).map(([label,calc],i)=>(
+            <div class="flex gap-3 items-start">
+              <span class="w-6 h-6 bg-red-100 text-red-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i+1}</span>
+              <div>
+                <div class="text-xs text-gray-500 mb-0.5">{label}</div>
+                <div class="text-sm font-medium text-gray-900 font-mono">{calc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      {[["Pre-tax","$"+amount.toLocaleString()],["Tax added",fmt(taxAmt)],["Total",fmt(total)],["Eff. rate",fmtP(effRate)]].map(([label,value])=>(
+        <div class="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div class="text-xs text-gray-500 mb-1">{label}</div>
+          <div class="text-lg font-bold font-mono text-red-700">{value}</div>
+        </div>
+      ))}
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-xl p-5 mb-8">
+      <h2 class="font-bold text-gray-900 mb-3">Reverse: Remove {rate}% from {fmt(total)}</h2>
+      <p class="text-sm text-gray-600 mb-3">If you have a tax-inclusive total of <strong>{fmt(total)}</strong> and need to extract the {rate}% tax:</p>
+      <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm">
+        {fmt(total)} ÷ {parseFloat(mult.toFixed(4))} = <span class="text-green-700 font-bold">{fmt(preTax)}</span> pre-tax
+      </div>
+    </div>
+
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8">
+      <div class="flex items-start gap-3">
+        <span class="text-2xl">🌍</span>
+        <div>
+          <h2 class="font-semibold text-amber-900 mb-1">Where is {rate}% used? — {region.label}</h2>
+          <p class="text-amber-800 text-sm leading-relaxed">{region.note}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
+      <h2 class="font-semibold text-blue-900 mb-2">Real-World Context</h2>
+      <p class="text-blue-800 text-sm leading-relaxed">{context}</p>
+    </div>
+
+    <FAQSection faqs={faqs}/>
+
+    <div class="mt-8 p-5 bg-gray-50 border border-gray-200 rounded-xl text-center">
+      <p class="text-gray-600 text-sm mb-3">Need more tax calculation modes?</p>
+      <a href="/tax-calculator" class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Open Full Tax Calculator →</a>
+    </div>
+  </div>
+</Base>

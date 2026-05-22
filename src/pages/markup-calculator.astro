@@ -1,0 +1,97 @@
+---
+import Base from "../layouts/Base.astro";
+import FAQSection from "../components/FAQSection.astro";
+import RelatedCalculators from "../components/RelatedCalculators.astro";
+import Breadcrumb from "../components/Breadcrumb.astro";
+import MarkupCalculator from "../components/MarkupCalculator.astro";
+const faqs = [
+  { question:"Is markup the same as profit margin?", answer:"No. Markup divides profit by cost; margin divides profit by revenue. A 50% markup always equals a 33.3% margin. Markup is always the larger number." },
+  { question:"What markup do I need to achieve a 40% margin?", answer:"Use: Markup = Margin ÷ (1 − Margin/100). For 40% margin: 40 ÷ 0.60 = 66.7% markup." },
+  { question:"How do I set a markup that covers overhead?", answer:"Add your overhead percentage to your desired profit margin, then convert to markup. If overhead is 20% and you want 15% net profit, you need a 35% gross margin — a 53.8% markup." },
+  { question:"What is a healthy markup for a small business?", answer:"Retail typically needs 50–100% markup. Service businesses often mark up labour at 100–300%. See the industry table for benchmarks." },
+];
+const industries = [
+  ["Grocery","15–25%","13–20%","High volume, thin margins"],
+  ["Apparel","100–150%","50–60%","Covers seasonal markdowns"],
+  ["Restaurants","200–350%","67–78%","Labour & overhead intensive"],
+  ["Electronics","10–30%","9–23%","Low margins, high competition"],
+  ["Software / SaaS","500–2000%","83–95%","Near-zero marginal cost"],
+  ["Furniture","200–400%","67–80%","Showroom & delivery costs"],
+];
+---
+<Base title="Markup Calculator – Selling Price from Cost"
+  description="Calculate selling price, markup %, cost, or convert between markup and margin. Free business markup calculator."
+  canonical="/markup-calculator">
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <Breadcrumb items={[{label:"Home",href:"/"},{label:"Markup Calculator"}]}/>
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Markup Calculator</h1>
+    <p class="text-gray-600 mb-8">Calculate selling price, markup %, cost, or convert between markup and margin.</p>
+    <div class="mb-8"><MarkupCalculator/></div>
+
+    <div class="bg-white border border-gray-200 rounded-xl p-5 mb-8">
+      <h2 class="font-bold text-gray-900 mb-1">Markup vs Margin — The Most Confused Concepts in Business Math</h2>
+      <p class="text-sm text-gray-500 mb-4">Same profit, different denominators.</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm border-collapse">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="text-left px-4 py-2.5 font-medium text-gray-500 text-xs"></th>
+              <th class="text-left px-4 py-2.5 font-medium text-gray-900 text-xs">Markup</th>
+              <th class="text-left px-4 py-2.5 font-medium text-gray-900 text-xs">Margin</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["Definition","% above cost","% of selling price"],
+              ["Denominator","Cost price","Selling price"],
+              ["Formula","(Price−Cost)÷Cost×100","(Price−Cost)÷Price×100"],
+              ["Example (Cost $40, Price $60)","50% markup","33.3% margin"],
+              ["Always","Higher number","Lower number"],
+            ].map(([r,m,mg])=>(
+              <tr class="border-b border-gray-100 last:border-0">
+                <td class="px-4 py-2.5 text-gray-500 text-xs">{r}</td>
+                <td class="px-4 py-2.5 text-green-700 font-medium text-xs font-mono">{m}</td>
+                <td class="px-4 py-2.5 text-blue-700 font-medium text-xs font-mono">{mg}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+        ⚠️ Markup is always higher than margin for the same transaction. If someone quotes you a "50% margin," verify whether they mean markup.
+      </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-xl p-5 mb-8 overflow-x-auto">
+      <h2 class="font-bold text-gray-900 mb-4">Typical Markup Percentages by Industry</h2>
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="text-left px-3 py-2 font-medium text-gray-500">Industry</th>
+            <th class="text-right px-3 py-2 font-medium text-gray-500">Typical Markup</th>
+            <th class="text-right px-3 py-2 font-medium text-gray-500">Equiv. Margin</th>
+            <th class="text-left px-3 py-2 font-medium text-gray-500">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {industries.map(([ind,mu,mg,note])=>(
+            <tr class="border-b border-gray-100 last:border-0">
+              <td class="px-3 py-2 font-medium text-gray-900">{ind}</td>
+              <td class="px-3 py-2 text-right text-green-700 font-medium">{mu}</td>
+              <td class="px-3 py-2 text-right text-blue-700">{mg}</td>
+              <td class="px-3 py-2 text-gray-500 text-xs">{note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <FAQSection faqs={faqs}/>
+    <RelatedCalculators items={[
+      {label:"Discount Calculator",href:"/discount-calculator",desc:"Sale price and savings"},
+      {label:"Tax Calculator",     href:"/tax-calculator",    desc:"Sales tax and VAT"},
+      {label:"% Increase",         href:"/percentage-increase",desc:"Growth between two values"},
+      {label:"% of Number",        href:"/percentage-of-number",desc:"What is X% of Y?"},
+    ]}/>
+  </div>
+</Base>

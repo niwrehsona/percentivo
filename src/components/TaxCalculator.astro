@@ -1,0 +1,83 @@
+---
+---
+<div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+  <div class="flex flex-wrap gap-2 mb-6">
+    <button data-mode="add-tax"    class="t-tab active px-3 py-1.5 rounded-full text-sm font-medium bg-blue-600 text-white">Add tax</button>
+    <button data-mode="remove-tax" class="t-tab px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">Remove tax</button>
+    <button data-mode="find-rate"  class="t-tab px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">Find tax rate</button>
+    <button data-mode="income"     class="t-tab px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">Income tax</button>
+  </div>
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div>
+      <label id="t-la" class="block text-xs font-medium text-gray-500 mb-1.5">Pre-tax price ($)</label>
+      <input id="t-a" type="number" inputmode="decimal" placeholder="e.g. 100"
+        class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"/>
+    </div>
+    <div>
+      <label id="t-lb" class="block text-xs font-medium text-gray-500 mb-1.5">Tax rate (%)</label>
+      <input id="t-b" type="number" inputmode="decimal" placeholder="e.g. 8.5"
+        class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"/>
+    </div>
+  </div>
+  <div id="t-box" class="border rounded-xl p-4 min-h-[90px] bg-red-50 border-red-200">
+    <div id="t-ph" class="text-center text-gray-400 text-sm pt-2">Enter values above to calculate</div>
+    <div id="t-rows" class="hidden space-y-1"></div>
+    <div id="t-fml" class="hidden font-mono text-xs mt-2 opacity-70"></div>
+    <div id="t-warn" class="hidden mt-2 text-xs bg-amber-100 text-amber-800 rounded-lg p-2"></div>
+  </div>
+</div>
+<script>
+type TMode="add-tax"|"remove-tax"|"find-rate"|"income";
+let tMode:TMode="add-tax";
+const tFmt=(n:number)=>"$"+parseFloat(n.toFixed(2)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const tPct=(n:number)=>parseFloat(n.toFixed(4))+"%";
+const tCols:Record<TMode,string>={
+  "add-tax":    "bg-red-50 border-red-200",
+  "remove-tax": "bg-green-50 border-green-200",
+  "find-rate":  "bg-amber-50 border-amber-200",
+  "income":     "bg-red-50 border-red-200",
+};
+const tLbls:Record<TMode,[string,string,string,string]>={
+  "add-tax":    ["Pre-tax price ($)","e.g. 100","Tax rate (%)","e.g. 8.5"],
+  "remove-tax": ["Price inc. tax ($)","e.g. 108.50","Tax rate (%)","e.g. 8.5"],
+  "find-rate":  ["Pre-tax price ($)","e.g. 100","Total inc. tax ($)","e.g. 108.50"],
+  "income":     ["Gross income ($)","e.g. 50000","Tax rate (%)","e.g. 22"],
+};
+function tCalc(){
+  const a=parseFloat((document.getElementById("t-a") as HTMLInputElement).value);
+  const b=parseFloat((document.getElementById("t-b") as HTMLInputElement).value);
+  const ph=document.getElementById("t-ph")!,rows=document.getElementById("t-rows")!;
+  const fml=document.getElementById("t-fml")!,warn=document.getElementById("t-warn")!,box=document.getElementById("t-box")!;
+  if(isNaN(a)||isNaN(b)){ph.classList.remove("hidden");rows.classList.add("hidden");fml.classList.add("hidden");warn.classList.add("hidden");return;}
+  let rData:[string,string,boolean][]=[];let f="";let w="";
+  if(tMode==="add-tax"){const ta=a*b/100,tot=a+ta,eff=(ta/tot)*100;rData=[["Tax amount",tFmt(ta),false],["Total (inc. tax)",tFmt(tot),true],["Effective rate",tPct(eff),false]];f=`${a}×(1+${b}/100)=${tFmt(tot)}`;}
+  else if(tMode==="remove-tax"){const pre=a/(1+b/100),ta=a-pre;rData=[["Pre-tax price",tFmt(pre),true],["Tax extracted",tFmt(ta),false]];f=`${a}÷(1+${b}/100)=${tFmt(pre)}`;}
+  else if(tMode==="find-rate"){if(!a)return;const r=((b-a)/a)*100,ta=b-a;rData=[["Tax rate",tPct(r),true],["Tax amount",tFmt(ta),false]];f=`((${b}−${a})÷${a})×100=${tPct(r)}`;}
+  else{const ta=a*b/100,net=a-ta;rData=[["Tax owed (flat)",tFmt(ta),true],["Take-home (net)",tFmt(net),false],["Rate applied",tPct(b),false]];f=`${a.toLocaleString()}×${b}/100=${tFmt(ta)}`;w="⚠️ Flat-rate estimate only. Real income tax is progressive. Consult a tax professional.";}
+  ph.classList.add("hidden");
+  rows.innerHTML=rData.map(([l,v,big])=>`<div class="flex justify-between items-center py-1 border-b border-current border-opacity-10 last:border-0"><span class="text-sm">${l}</span><span class="${big?"text-2xl font-bold":"font-semibold text-sm"}">${v}</span></div>`).join("");
+  rows.classList.remove("hidden");fml.textContent=f;fml.classList.remove("hidden");
+  if(w){warn.textContent=w;warn.classList.remove("hidden");}else warn.classList.add("hidden");
+  box.className=`border rounded-xl p-4 min-h-[90px] ${tCols[tMode]}`;
+}
+function tSet(m:TMode){
+  tMode=m;const[la,pa,lb,pb]=tLbls[m];
+  (document.getElementById("t-la") as HTMLElement).textContent=la;
+  (document.getElementById("t-lb") as HTMLElement).textContent=lb;
+  (document.getElementById("t-a") as HTMLInputElement).placeholder=pa;
+  (document.getElementById("t-b") as HTMLInputElement).placeholder=pb;
+  (document.getElementById("t-a") as HTMLInputElement).value="";
+  (document.getElementById("t-b") as HTMLInputElement).value="";
+  document.getElementById("t-ph")!.classList.remove("hidden");
+  document.getElementById("t-rows")!.classList.add("hidden");
+  document.getElementById("t-fml")!.classList.add("hidden");
+  document.getElementById("t-warn")!.classList.add("hidden");
+  document.querySelectorAll(".t-tab").forEach(b=>{
+    const on=(b as HTMLElement).dataset.mode===m;
+    b.className=`t-tab px-3 py-1.5 rounded-full text-sm font-medium ${on?"bg-blue-600 text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`;
+  });
+}
+document.querySelectorAll(".t-tab").forEach(b=>b.addEventListener("click",()=>tSet((b as HTMLElement).dataset.mode as TMode)));
+document.getElementById("t-a")!.addEventListener("input",tCalc);
+document.getElementById("t-b")!.addEventListener("input",tCalc);
+</script>

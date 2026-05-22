@@ -1,0 +1,121 @@
+---
+import Base from "../../layouts/Base.astro";
+import FAQSection from "../../components/FAQSection.astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+import { buildFAQSchema, buildHowToSchema } from "../../lib/seo";
+import increasePairs from "../../data/increase-pairs.json";
+
+export function getStaticPaths() {
+  return (increasePairs as {from:number;to:number;pct:number}[]).map(({from,to})=>({
+    params: { slug:`${from}-to-${to}` },
+    props:  { from, to },
+  }));
+}
+
+const { from, to } = Astro.props as { from:number; to:number };
+const diff   = parseFloat((to - from).toFixed(6));
+const pct    = from !== 0 ? parseFloat(((diff/from)*100).toFixed(4)) : 0;
+const isInc  = pct >= 0;
+const absPct = Math.abs(pct);
+const mult   = parseFloat((1 + pct/100).toFixed(6));
+const word   = isInc ? "Increase" : "Decrease";
+
+function getContext():string {
+  const abs = Math.abs(diff);
+  if(from < 50)   return isInc ? `An item rising from $${from} to $${to} is a ${absPct}% ${word.toLowerCase()} — a $${abs.toFixed(2)} difference worth noting on everyday purchases.` : `A price dropping from $${from} to $${to} is a ${absPct}% ${word.toLowerCase()}, saving $${abs.toFixed(2)}.`;
+  if(from < 500)  return isInc ? `Going from $${from} to $${to} represents a ${absPct}% ${word.toLowerCase()} of $${abs.toFixed(2)}. Common in retail pricing, subscription hikes, and service rate changes.` : `A reduction from $${from} to $${to} is ${absPct}% — a saving of $${abs.toFixed(2)}.`;
+  if(from < 5000) return isInc ? `A salary or revenue figure rising from $${from.toLocaleString()} to $${to.toLocaleString()} is a ${absPct}% ${word.toLowerCase()}.` : `Falling from $${from.toLocaleString()} to $${to.toLocaleString()} is a ${absPct}% ${word.toLowerCase()}.`;
+  return isInc ? `A large figure growing from $${from.toLocaleString()} to $${to.toLocaleString()} is a ${absPct}% ${word.toLowerCase()}.` : `A large figure falling from $${from.toLocaleString()} to $${to.toLocaleString()} is a ${absPct}% ${word.toLowerCase()}.`;
+}
+
+const context = getContext();
+const faqs = [
+  { question:`What is the percentage ${word.toLowerCase()} from ${from} to ${to}?`, answer:`The percentage ${word.toLowerCase()} from ${from} to ${to} is ${absPct}%. Formula: ((${to} − ${from}) ÷ ${from}) × 100 = ${pct}%.` },
+  { question:`What is ${absPct}% ${word.toLowerCase()} from ${from}?`, answer:`A ${absPct}% ${word.toLowerCase()} from ${from} gives ${to}. Calculation: ${from} × ${mult} = ${to}.` },
+  { question:`How do you verify ${absPct}% ${word.toLowerCase()} from ${from} equals ${to}?`, answer:`Multiply ${from} × (1 ${isInc?"+":"−"} ${absPct}/100) = ${from} × ${mult} = ${to}. ✓` },
+  { question:`Is ${absPct}% ${word.toLowerCase()} the same as ${absPct} percentage points?`, answer:`No. A percentage ${word.toLowerCase()} is relative (based on the starting value). Percentage points describe absolute difference.` },
+];
+const howTo = buildHowToSchema(`How to calculate % ${word.toLowerCase()} from ${from} to ${to}`,[
+  { name:"Find the difference",   text:`${to} − ${from} = ${diff}` },
+  { name:"Divide by original",    text:`${diff} ÷ ${from} = ${parseFloat((diff/from).toFixed(6))}` },
+  { name:"Multiply by 100",       text:`= ${pct}%` },
+  { name:"Verify",                text:`${from} × ${mult} = ${to} ✓` },
+]);
+
+const colorBg   = isInc ? "from-green-50 to-emerald-50 border-green-200" : "from-amber-50 to-orange-50 border-amber-200";
+const colorText = isInc ? "text-green-700" : "text-amber-700";
+const colorMono = isInc ? "text-green-600" : "text-amber-600";
+const stepBg    = isInc ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700";
+---
+<Base
+  title={`Percentage ${word} from ${from} to ${to} – ${absPct}%`}
+  description={`The percentage ${word.toLowerCase()} from ${from} to ${to} is ${absPct}%. See the formula, step-by-step solution, and real-world examples.`}
+  canonical={`/increase/${from}-to-${to}`}
+  schema={`${buildFAQSchema(faqs)}\n${howTo}`}>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <Breadcrumb items={[{label:"Home",href:"/"},{label:`% ${word}`,href:`/percentage-${word.toLowerCase()}`},{label:`${from} to ${to}`}]}/>
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Percentage {word} from {from} to {to}</h1>
+    <p class="text-gray-500 mb-8 text-sm">Formula, step-by-step solution, and real-world examples.</p>
+
+    <div class={`bg-gradient-to-br ${colorBg} border rounded-2xl p-8 mb-8 text-center shadow-sm`}>
+      <div class={`text-sm font-medium mb-2 uppercase tracking-wide ${colorText}`}>Percentage {word}</div>
+      <div class={`text-7xl font-bold mb-3 ${colorText}`}>{isInc?"+":"−"}{absPct}%</div>
+      <div class={`font-mono text-sm bg-white/60 rounded-lg px-4 py-2 inline-block ${colorMono}`}>
+        (({to} − {from}) ÷ {from}) × 100 = {pct}%
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">Formula</h2>
+        <div class="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 font-mono text-blue-800 text-sm text-center mb-4">% change = ((New − Old) ÷ Old) × 100</div>
+        <div class="space-y-2 text-sm">
+          {[["Old value",String(from)],["New value",String(to)],["Difference",(diff>=0?"+":"")+diff],["Result",(pct>=0?"+":"")+pct+"%"]].map(([k,v],i)=>(
+            <div class={`flex justify-between py-1 ${i<3?"border-b border-gray-100":"font-semibold"}`}>
+              <span class="text-gray-600">{k}</span>
+              <span class={`font-mono ${i===3?colorText:"text-gray-900"}`}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 class="font-bold text-gray-900 mb-3">Step-by-Step</h2>
+        <div class="space-y-3">
+          {[["Subtract old from new",`${to} − ${from} = ${diff}`],["Divide by original",`${diff} ÷ ${from} = ${parseFloat((diff/from).toFixed(6))}`],["Multiply by 100",`= ${pct}%`],["Verify",`${from} × ${mult} = ${to} ✓`]].map(([label,calc],i)=>(
+            <div class="flex gap-3 items-start">
+              <span class={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5 ${stepBg}`}>{i+1}</span>
+              <div>
+                <div class="text-xs text-gray-500 mb-0.5">{label}</div>
+                <div class="text-sm font-medium text-gray-900 font-mono">{calc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-8">
+      {[["Difference",(diff>=0?"+":"")+Math.abs(diff)],["Multiplier","× "+mult],["Result",(isInc?"+":"−")+absPct+"%"]].map(([label,value])=>(
+        <div class="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div class="text-xs text-gray-500 mb-1">{label}</div>
+          <div class={`text-xl font-bold font-mono ${colorText}`}>{value}</div>
+        </div>
+      ))}
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
+      <h2 class="font-semibold text-blue-900 mb-2">Real-World Context</h2>
+      <p class="text-blue-800 text-sm leading-relaxed">{context}</p>
+    </div>
+
+    <FAQSection faqs={faqs}/>
+
+    <div class="mt-8 p-5 bg-gray-50 border border-gray-200 rounded-xl text-center">
+      <p class="text-gray-600 text-sm mb-3">Need a different calculation?</p>
+      <div class="flex gap-3 justify-center flex-wrap">
+        <a href="/percentage-increase" class="inline-flex items-center gap-1 bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">% Increase Calculator →</a>
+        <a href="/percentage-decrease" class="inline-flex items-center gap-1 bg-gray-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">% Decrease Calculator →</a>
+      </div>
+    </div>
+  </div>
+</Base>

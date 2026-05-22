@@ -1,0 +1,74 @@
+---
+---
+<div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+  <div class="flex flex-wrap gap-2 mb-6">
+    <button data-mode="find-sale"     class="d-tab active px-3 py-1.5 rounded-full text-sm font-medium bg-blue-600 text-white">% off → sale price</button>
+    <button data-mode="find-pct"      class="d-tab px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">Find discount %</button>
+    <button data-mode="find-original" class="d-tab px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">Find original price</button>
+  </div>
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div>
+      <label id="d-la" class="block text-xs font-medium text-gray-500 mb-1.5">Original price ($)</label>
+      <input id="d-a" type="number" inputmode="decimal" placeholder="e.g. 80"
+        class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"/>
+    </div>
+    <div>
+      <label id="d-lb" class="block text-xs font-medium text-gray-500 mb-1.5">Discount (%)</label>
+      <input id="d-b" type="number" inputmode="decimal" placeholder="e.g. 25"
+        class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"/>
+    </div>
+  </div>
+  <div id="d-box" class="border rounded-xl p-4 min-h-[90px] bg-green-50 border-green-200">
+    <div id="d-ph" class="text-center text-gray-400 text-sm pt-2">Enter values above to calculate</div>
+    <div id="d-rows" class="hidden space-y-1"></div>
+    <div id="d-fml" class="hidden font-mono text-xs mt-2 opacity-70"></div>
+  </div>
+</div>
+<script>
+type DMode="find-sale"|"find-pct"|"find-original";
+let dMode:DMode="find-sale";
+const dFmt=(n:number)=>"$"+parseFloat(n.toFixed(2)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const dCols:Record<DMode,string>={
+  "find-sale":     "bg-green-50 border-green-200",
+  "find-pct":      "bg-blue-50 border-blue-200",
+  "find-original": "bg-amber-50 border-amber-200",
+};
+const dLbls:Record<DMode,[string,string,string,string]>={
+  "find-sale":     ["Original price ($)","e.g. 80","Discount (%)","e.g. 25"],
+  "find-pct":      ["Original price ($)","e.g. 80","Sale price ($)","e.g. 60"],
+  "find-original": ["Sale price ($)","e.g. 60","Discount (%)","e.g. 25"],
+};
+function dCalc(){
+  const a=parseFloat((document.getElementById("d-a") as HTMLInputElement).value);
+  const b=parseFloat((document.getElementById("d-b") as HTMLInputElement).value);
+  const ph=document.getElementById("d-ph")!,rows=document.getElementById("d-rows")!,fml=document.getElementById("d-fml")!,box=document.getElementById("d-box")!;
+  if(isNaN(a)||isNaN(b)){ph.classList.remove("hidden");rows.classList.add("hidden");fml.classList.add("hidden");return;}
+  let rData:[string,string,boolean][]=[];let f="";
+  if(dMode==="find-sale"){const sv=a*b/100,sp=a-sv;rData=[["You save",dFmt(sv),false],["Sale price",dFmt(sp),true],["Saving %",b+"%",false]];f=`${a}×(1−${b}/100)=${dFmt(sp)}`;}
+  else if(dMode==="find-pct"){if(!a)return;const p=((a-b)/a)*100,sv=a-b;rData=[["Discount %",parseFloat(p.toFixed(2))+"%",true],["You saved",dFmt(sv),false]];f=`((${a}−${b})÷${a})×100=${parseFloat(p.toFixed(2))}%`;}
+  else{if(b>=100)return;const o=a/(1-b/100),sv=o-a;rData=[["Original price",dFmt(o),true],["You saved",dFmt(sv),false]];f=`${a}÷(1−${b}/100)=${dFmt(o)}`;}
+  ph.classList.add("hidden");
+  rows.innerHTML=rData.map(([l,v,big])=>`<div class="flex justify-between items-center py-1 border-b border-current border-opacity-10 last:border-0"><span class="text-sm">${l}</span><span class="${big?"text-2xl font-bold":"font-semibold text-sm"}">${v}</span></div>`).join("");
+  rows.classList.remove("hidden");fml.textContent=f;fml.classList.remove("hidden");
+  box.className=`border rounded-xl p-4 min-h-[90px] ${dCols[dMode]}`;
+}
+function dSet(m:DMode){
+  dMode=m;const[la,pa,lb,pb]=dLbls[m];
+  (document.getElementById("d-la") as HTMLElement).textContent=la;
+  (document.getElementById("d-lb") as HTMLElement).textContent=lb;
+  (document.getElementById("d-a") as HTMLInputElement).placeholder=pa;
+  (document.getElementById("d-b") as HTMLInputElement).placeholder=pb;
+  (document.getElementById("d-a") as HTMLInputElement).value="";
+  (document.getElementById("d-b") as HTMLInputElement).value="";
+  document.getElementById("d-ph")!.classList.remove("hidden");
+  document.getElementById("d-rows")!.classList.add("hidden");
+  document.getElementById("d-fml")!.classList.add("hidden");
+  document.querySelectorAll(".d-tab").forEach(b=>{
+    const on=(b as HTMLElement).dataset.mode===m;
+    b.className=`d-tab px-3 py-1.5 rounded-full text-sm font-medium ${on?"bg-blue-600 text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`;
+  });
+}
+document.querySelectorAll(".d-tab").forEach(b=>b.addEventListener("click",()=>dSet((b as HTMLElement).dataset.mode as DMode)));
+document.getElementById("d-a")!.addEventListener("input",dCalc);
+document.getElementById("d-b")!.addEventListener("input",dCalc);
+</script>
