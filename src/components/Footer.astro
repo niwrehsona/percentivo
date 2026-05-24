@@ -1,0 +1,170 @@
+---
+
+---
+
+<footer class="bg-gray-900 text-gray-400 mt-16">
+  <div
+    class="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+  >
+    <div>
+      <div class="text-white font-bold text-lg mb-3 flex items-center gap-2">
+        <span class="text-2xl text-blue-400">
+          <img src="/logo-percentivo.svg" alt="Percentivo logo" width="24" />
+        </span> PERCENTIVO
+      </div>
+      <p class="text-sm leading-relaxed">
+        Free online percentage calculators. Fast, accurate, no signup required.
+      </p>
+    </div>
+    <div>
+      <h3 class="text-white font-semibold text-sm mb-3 uppercase tracking-wide">
+        Calculators
+      </h3>
+      <ul class="space-y-2 text-sm">
+        <li>
+          <a
+            href="/percentage-of-number"
+            class="hover:text-white transition-colors">Percentage of Number</a
+          >
+        </li>
+        <li>
+          <a
+            href="/percentage-increase"
+            class="hover:text-white transition-colors">Percentage Increase</a
+          >
+        </li>
+        <li>
+          <a
+            href="/percentage-decrease"
+            class="hover:text-white transition-colors">Percentage Decrease</a
+          >
+        </li>
+        <li>
+          <a
+            href="/discount-calculator"
+            class="hover:text-white transition-colors">Discount Calculator</a
+          >
+        </li>
+        <li>
+          <a
+            href="/markup-calculator"
+            class="hover:text-white transition-colors">Markup Calculator</a
+          >
+        </li>
+        <li>
+          <a href="/tax-calculator" class="hover:text-white transition-colors"
+            >Tax Calculator</a
+          >
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-white font-semibold text-sm mb-3 uppercase tracking-wide">
+        Resources
+      </h3>
+      <ul class="space-y-2 text-sm">
+        <li>
+          <a href="/blog" class="hover:text-white transition-colors">Blog</a>
+        </li>
+        <li>
+          <a
+            href="/blog/how-to-calculate-percentage"
+            class="hover:text-white transition-colors">How to Calculate %</a
+          >
+        </li>
+        <li>
+          <a
+            href="/blog/percentage-formulas"
+            class="hover:text-white transition-colors">Percentage Formulas</a
+          >
+        </li>
+        <li>
+          <a
+            href="/blog/discount-vs-markup"
+            class="hover:text-white transition-colors">Discount vs Markup</a
+          >
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-white font-semibold text-sm mb-3 uppercase tracking-wide">
+        Popular Calculations
+      </h3>
+      <ul class="space-y-2 text-sm">
+        <li>
+          <a
+            href="/what-is/15-percent-of-200"
+            class="hover:text-white transition-colors">What is 15% of 200?</a
+          >
+        </li>
+        <li>
+          <a
+            href="/what-is/20-percent-of-50"
+            class="hover:text-white transition-colors">What is 20% of 50?</a
+          >
+        </li>
+        <li>
+          <a
+            href="/what-is/10-percent-of-1000"
+            class="hover:text-white transition-colors">What is 10% of 1000?</a
+          >
+        </li>
+        <li>
+          <a
+            href="/what-is/25-percent-of-80"
+            class="hover:text-white transition-colors">What is 25% of 80?</a
+          >
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-gray-800">
+    <div
+      class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500"
+    >
+      <span>© {new Date().getFullYear()} Percentivo. All rights reserved.</span>
+      <span>Free online calculator tools</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  class MobileMenuEl extends HTMLElement {
+    connectedCallback() {
+      const btn = this.querySelector("#menu-btn")!;
+      const nav = this.querySelector("#mobile-nav")!;
+      const iconO = this.querySelector("#icon-open")!;
+      const iconC = this.querySelector("#icon-close")!;
+      const calcBtn = this.querySelector("#calc-btn")!;
+      const calcNav = this.querySelector("#calc-nav")!;
+      const calcIcon = this.querySelector("#calc-icon")!;
+      let open = false,
+        calcOpen = false;
+
+      btn.addEventListener("click", () => {
+        open = !open;
+        nav.classList.toggle("opacity-100", open);
+        nav.classList.toggle("scale-y-100", open);
+        nav.classList.toggle("pointer-events-auto", open);
+        nav.classList.toggle("opacity-0", !open);
+        nav.classList.toggle("scale-y-0", !open);
+        nav.classList.toggle("pointer-events-none", !open);
+        nav.setAttribute("aria-hidden", String(!open));
+        btn.setAttribute("aria-expanded", String(open));
+        iconO.classList.toggle("hidden", open);
+        iconC.classList.toggle("hidden", !open);
+      });
+
+      calcBtn.addEventListener("click", () => {
+        calcOpen = !calcOpen;
+        calcNav.classList.toggle("max-h-96", calcOpen);
+        calcNav.classList.toggle("max-h-0", !calcOpen);
+        (calcIcon as HTMLElement).style.transform = calcOpen
+          ? "rotate(180deg)"
+          : "";
+        calcBtn.setAttribute("aria-expanded", String(calcOpen));
+      });
+    }
+  }
+  customElements.define("mobile-menu", MobileMenuEl);
+</script>

@@ -1,12 +1,14 @@
 ---
-import Base from "../../layouts/Base.astro";
+import BaseBlog from "../../layouts/BaseBlog.astro";
 import Breadcrumb from "../../components/Breadcrumb.astro";
 
 export async function getStaticPaths() {
-  const allPosts = import.meta.glob("../../content/blog/*.mdx", { eager: true });
+  const allPosts = import.meta.glob("../../content/blog/*.mdx", {
+    eager: true,
+  });
   return Object.entries(allPosts).map(([path, mod]: [string, any]) => ({
-    params: { slug: path.split("/").pop()!.replace(".mdx","") },
-    props:  { mod },
+    params: { slug: path.split("/").pop()!.replace(".mdx", "") },
+    props: { mod },
   }));
 }
 
@@ -14,34 +16,59 @@ const { mod } = Astro.props;
 const { Content, frontmatter } = mod;
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" });
+  return new Date(d).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 ---
-<Base
+
+<BaseBlog
   title={frontmatter.title}
   description={frontmatter.description}
-  canonical={`/blog/${Astro.params.slug}`}>
+  canonical={`/blog/${Astro.params.slug}`}
+>
   <div class="max-w-3xl mx-auto px-4 py-8">
-    <Breadcrumb items={[{label:"Home",href:"/"},{label:"Blog",href:"/blog"},{label:frontmatter.title}]}/>
+    <Breadcrumb
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Blog", href: "/blog" },
+        { label: frontmatter.title },
+      ]}
+    />
 
     <header class="mb-8">
       <div class="flex items-center gap-3 mb-4">
-        <span class="text-xs font-medium px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full">{frontmatter.category}</span>
-        <span class="text-xs text-gray-400">{formatDate(frontmatter.date)}</span>
+        <span
+          class="text-xs font-medium px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full"
+          >{frontmatter.category}</span
+        >
+        <span class="text-xs text-gray-400">{formatDate(frontmatter.date)}</span
+        >
       </div>
-      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 leading-tight">{frontmatter.title}</h1>
-      <p class="text-lg text-gray-600 leading-relaxed">{frontmatter.description}</p>
+      <h1
+        class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 leading-tight"
+      >
+        {frontmatter.title}
+      </h1>
+      <p class="text-lg text-gray-600 leading-relaxed">
+        {frontmatter.description}
+      </p>
     </header>
 
     <article class="prose max-w-none">
-      <Content/>
+      <Content />
     </article>
 
     <div class="mt-12 pt-8 border-t border-gray-200 text-center">
       <p class="text-gray-500 text-sm mb-4">Ready to calculate?</p>
-      <a href="/" class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+      <a
+        href="/"
+        class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+      >
         Open Percentage Calculator →
       </a>
     </div>
   </div>
-</Base>
+</BaseBlog>
