@@ -11,7 +11,7 @@ interface Props {
 }
 const { title, description = SITE.desc, canonical, schema } = Astro.props;
 const url = canonical ? `${SITE.url}${canonical}` : SITE.url;
-const ogimage = "og-image-blog.webp";
+const ogimage = "/og-image-blog.webp";
 ---
 
 <!doctype html>
