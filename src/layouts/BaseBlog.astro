@@ -29,10 +29,14 @@ const ogimage = "/og-image-blog.webp";
     <meta property="og:type" content="website" />
     <meta property="og:image" content={ogimage} />
     <meta name="robots" content="index,follow" />
+    <meta name="google-adsense-account" content="ca-pub-6265665269288793" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script type="application/ld+json" set:html={buildWebAppSchema()} />
     {schema && <script type="application/ld+json" set:html={schema} />}
-    <meta name="google-adsense-account" content="ca-pub-6265665269288793" />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6265665269288793"
+      crossorigin="anonymous"></script>
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-G5Z9DGM1SH"
     ></script>
