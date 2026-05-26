@@ -36,12 +36,14 @@ const ogimage = "/og-image-blog.webp";
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-G5Z9DGM1SH"
     ></script>
     <script is:inline>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
+      if (window.location.hostname !== "localhost") {
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        gtag("js", new Date());
+        gtag("config", "G-G5Z9DGM1SH");
       }
-      gtag("js", new Date());
-      gtag("config", "G-G5Z9DGM1SH");
     </script>
   </head>
   <body class="bg-gray-50 text-gray-900 antialiased">

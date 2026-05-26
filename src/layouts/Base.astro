@@ -32,16 +32,19 @@ const ogimage = "/og-image-lp.webp";
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script type="application/ld+json" set:html={buildWebAppSchema()} />
     {schema && <script type="application/ld+json" set:html={schema} />}
+
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-G5Z9DGM1SH"
     ></script>
     <script is:inline>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
+      if (window.location.hostname !== "localhost") {
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        gtag("js", new Date());
+        gtag("config", "G-G5Z9DGM1SH");
       }
-      gtag("js", new Date());
-      gtag("config", "G-G5Z9DGM1SH");
     </script>
   </head>
   <body class="bg-gray-50 text-gray-900 antialiased">
